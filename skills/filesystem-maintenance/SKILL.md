@@ -243,16 +243,31 @@ du -sh ~/.cache/huggingface ~/.cache/torch ~/.cache/ollama ~/.ollama 2>/dev/null
 |------|-----|
 | `$HERMES_HOME/.env` | Runtime secrets — gateway won't start |
 | `$HERMES_HOME/config.yaml` | Agent configuration |
-| `$HERMES_HOME/state.db` | Session state and memory |
-| `$HERMES_HOME/memory_store.db` | Persistent memory |
+| `$HERMES_HOME/auth.json` | Platform authentication credentials |
+| `$HERMES_HOME/state.db` (`-shm`, `-wal`) | Session state — include SQLite sidecars |
+| `$HERMES_HOME/memory_store.db` | Persistent memory (DB form) |
+| `$HERMES_HOME/memories/` | Persistent memory (file form — some installs use this instead of the DB) |
+| `$HERMES_HOME/sessions/` | Session history — `session_search` depends on these |
+| `$HERMES_HOME/SOUL.md` | Agent identity / persona — equivalent to config |
 | `$HERMES_HOME/skills/` | Your skill library |
 | `$HERMES_HOME/workspace/` | Your workspace (repos, case files, etc.) |
 | `$HERMES_HOME/cron/` | Scheduled job definitions |
 | `$HERMES_HOME/hooks/` | Event hooks |
+| `$HERMES_HOME/scripts/` | Custom scripts (cron, watchdogs, etc.) — not cache |
+| `$HERMES_HOME/bin/` | Custom executables (CLIs, tools) — not easily recoverable |
 | `$HERMES_HOME/hermes-agent/` | Agent runtime (venv, node_modules, TUI) — often 1-2G but required |
+| `$HERMES_HOME/gateway_state.json` | Gateway runtime state — deleting mid-run corrupts connections |
+| `$HERMES_HOME/channel_directory.json` | Connected platform/channel registry |
+| `$HERMES_HOME/kanban.db` | Local task/kanban state |
+| `$HERMES_HOME/mcp-tokens/` | MCP server auth tokens — losing these breaks tool connections |
+| `$HERMES_HOME/pairing/` | Pairing/integration state |
 | `~/.password-store/` | GPG-encrypted backup vault |
+| `~/.ssh/` | SSH keys and config — not recoverable without backup |
+| `~/.gnupg/` | GPG keys — required to decrypt `~/.password-store/` |
 | `~/workspace/` | Your workspace repo — `git gc` is fine, deleting the dir is not |
 | `~/workspace/.argit/` | Backup manifest overlays — needed by argit |
+
+**Warning:** `$HERMES_HOME/.cache/` is NOT the same as `~/.cache/`. The Hermes-internal cache may hold live OAuth tokens and auth material, not just throwaway data. Never clean it without inspecting contents first.
 
 **Note:** `$HERMES_HOME` defaults to `~/.hermes`. If you use a non-default install or profiles, adjust paths accordingly. For OpenClaw environments, the equivalent paths under `~/.openclaw/agents/` are also protected.
 
