@@ -281,7 +281,23 @@ du -sh ~/.cache/huggingface ~/.cache/torch ~/.cache/ollama ~/.ollama 2>/dev/null
 
 **Rule:** Never delete `$HERMES_HOME` wholesale. Only clean explicitly named subdirectories (logs, media, audio_cache). Everything else under `$HERMES_HOME` is either state, config, or credentials.
 
-**Note:** `$HERMES_HOME` defaults to `~/.hermes`. If you use a non-default install or profiles, adjust paths accordingly. For OpenClaw environments, the equivalent paths under `~/.openclaw/agents/` are also protected.
+**Note:** `$HERMES_HOME` defaults to `~/.hermes`. If you use a non-default install or profiles, adjust paths accordingly.
+
+### OpenClaw environments
+
+If this VM runs OpenClaw instead of (or alongside) Hermes, these equivalent paths are also protected:
+
+| Path | Why |
+|------|-----|
+| `~/.openclaw/credentials/` | Connector/runtime credentials |
+| `~/.openclaw/identity/`, `~/.openclaw/devices/` | Agent/node identity and pairing state |
+| `~/.openclaw/cron/` | Scheduled jobs |
+| `~/.openclaw/memory/` | Durable memory store |
+| `~/.openclaw/agents/*/agent/` | Agent runtime (can be 1-2G — required) |
+| `~/.openclaw/agents/*/sessions/` | Session transcripts — same recall tradeoff as Hermes sessions |
+| `~/workspace/openclaw/sqlite/` | Active OpenClaw state DB (can be 1G+) |
+| `~/workspace/openclaw/blob/` | Active OpenClaw blob storage |
+| `~/workspace/openclaw/config/`, `~/workspace/openclaw/data/` | Config and runtime data |
 
 ## Automated maintenance (optional)
 
