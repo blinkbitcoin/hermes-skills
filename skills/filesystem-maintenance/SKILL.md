@@ -46,9 +46,15 @@ rm -rf ~/.cache/ms-playwright ~/.cache/camoufox ~/.cache/puppeteer ~/.cache/sele
 command -v uv >/dev/null && { du -sh ~/.cache/uv 2>/dev/null; uv cache clean; }
 command -v pip >/dev/null && { du -sh ~/.cache/pip 2>/dev/null; pip cache purge 2>/dev/null; }
 
-# npm
-du -sh ~/.npm/_cacache 2>/dev/null
+# npm — cache clean only clears _cacache, not _npx
+du -sh ~/.npm/_cacache ~/.npm/_npx 2>/dev/null
 command -v npm >/dev/null && npm cache clean --force 2>/dev/null
+# _npx accumulates full package installs that npm cache clean doesn't touch
+rm -rf ~/.npm/_npx/*/
+
+# node-gyp (cached Node.js headers — safe to remove, re-downloads on demand)
+du -sh ~/.cache/node-gyp 2>/dev/null
+rm -rf ~/.cache/node-gyp
 
 # Yarn (can be much larger than npm)
 if command -v yarn >/dev/null; then
