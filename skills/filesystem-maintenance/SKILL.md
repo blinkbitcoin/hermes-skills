@@ -204,7 +204,30 @@ done | sort -rn
 # Candidates can be re-cloned on demand — delete after reviewing
 ```
 
-### 11. ML / model caches
+### 11. Other toolchain caches
+
+Agents may accumulate caches from less common package managers. Inspect before cleaning — some are expensive to rebuild.
+
+```sh
+# Rust
+du -sh ~/.cargo/registry ~/.rustup/toolchains 2>/dev/null
+
+# pnpm
+du -sh ~/.pnpm-store ~/.local/share/pnpm/store 2>/dev/null
+command -v pnpm >/dev/null && pnpm store prune 2>/dev/null
+
+# Poetry
+du -sh ~/.cache/pypoetry 2>/dev/null
+
+# Conda / Mamba
+command -v conda >/dev/null && conda clean --all --dry-run 2>/dev/null
+
+# Go
+du -sh ~/go/pkg/mod 2>/dev/null
+command -v go >/dev/null && go clean -modcache 2>/dev/null
+```
+
+### 12. ML / model caches
 
 Large model downloads that are expensive to re-fetch — be cautious here.
 
