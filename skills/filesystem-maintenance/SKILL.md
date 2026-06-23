@@ -1,7 +1,7 @@
 ---
 name: filesystem-maintenance
 description: Keep disk usage under control on a Hermes VM. Use when disk is filling up, the agent has accumulated stale artifacts, or as a periodic housekeeping check. Covers safe cleanup targets, commands, and things to never delete.
-version: 1.1.0
+version: 1.2.0
 metadata:
   hermes:
     tags: [disk, cleanup, maintenance, ops]
@@ -36,7 +36,7 @@ Often the single largest waste item — Playwright, Camoufox, Puppeteer, and Sel
 ```sh
 du -sh ~/.cache/ms-playwright ~/.cache/camoufox ~/.cache/puppeteer ~/.cache/selenium 2>/dev/null
 # Safe to remove — browsers re-download on next run (may be slow on metered connections)
-rm -rf ~/.cache/ms-playwright ~/.cache/camoufox ~/.cache/puppeteer ~/.cache/selenium
+# rm -rf ~/.cache/ms-playwright ~/.cache/camoufox ~/.cache/puppeteer ~/.cache/selenium
 ```
 
 ### 2. Package manager caches
@@ -135,7 +135,7 @@ Migrations and transplants leave behind large `.bak` files under the Hermes dire
 
 ```sh
 HERMES_HOME="${HERMES_HOME:-$HOME/.hermes}"
-find "$HERMES_HOME" -maxdepth 1 -name "*.bak" -o -name "*backup*" -o -name "*.pretransplant*" | xargs -r ls -lh
+find "$HERMES_HOME" -maxdepth 1 \( -name "*.bak" -o -name "*backup*" -o -name "*.pretransplant*" \) | xargs -r ls -lh
 # Review the list, then remove confirmed stale backups
 ```
 
@@ -195,7 +195,7 @@ Agents clone repos for one-off lookups and forget about them.
 
 ```sh
 # Find repos with no recent activity (last commit or access > 30 days ago)
-find ~/repos ~/ -maxdepth 3 -name ".git" -type d 2>/dev/null | while read gitdir; do
+find ~/ -maxdepth 3 -name ".git" -type d 2>/dev/null | while read gitdir; do
   repo="$(dirname "$gitdir")"
   last_mod=$(stat -c %Y "$gitdir/FETCH_HEAD" 2>/dev/null || stat -c %Y "$gitdir/HEAD")
   age=$(( ($(date +%s) - last_mod) / 86400 ))
