@@ -108,7 +108,26 @@ git worktree prune
 find ~/ -maxdepth 4 -type d \( -name "node_modules" -o -name "__pycache__" -o -name ".mypy_cache" -o -name "dist" -o -name "build" \) 2>/dev/null | xargs -r du -sh | sort -h
 ```
 
-### 7. Audio / media cache
+### 7. Git LFS objects
+
+LFS keeps old versions of large files locally even after they've been pushed. Across multiple repos this adds up quickly.
+
+```sh
+# Find all git repos under home and prune LFS objects in each
+find ~/ -maxdepth 4 -name ".git" -type d 2>/dev/null | while read gitdir; do
+  repo="$(dirname "$gitdir")"
+  # Skip bare repos
+  [ -f "$repo/.git" ] || [ -d "$repo/.git" ] || continue
+  size_before=$(du -sh "$repo/.git/lfs" 2>/dev/null | cut -f1)
+  [ -z "$size_before" ] && continue
+  echo "=== $repo (LFS: $size_before) ==="
+  git -C "$repo" lfs prune
+done
+```
+
+`git lfs prune` deletes local LFS objects that have already been pushed and are not referenced by the current checkout. It's always safe — the objects remain on the remote and will re-download on demand.
+
+### 8. Audio / media cache
 
 ```sh
 du -sh ~/.hermes/audio_cache 2>/dev/null
