@@ -50,11 +50,12 @@ command -v pip >/dev/null && { du -sh ~/.cache/pip 2>/dev/null; pip cache purge 
 du -sh ~/.npm/_cacache ~/.npm/_npx 2>/dev/null
 command -v npm >/dev/null && npm cache clean --force 2>/dev/null
 # _npx accumulates full package installs that npm cache clean doesn't touch
-rm -rf ~/.npm/_npx/*/
+du -sh ~/.npm/_npx 2>/dev/null
+# rm -rf ~/.npm/_npx/*/    # uncomment after reviewing
 
 # node-gyp (cached Node.js headers — safe to remove, re-downloads on demand)
 du -sh ~/.cache/node-gyp 2>/dev/null
-rm -rf ~/.cache/node-gyp
+# rm -rf ~/.cache/node-gyp  # uncomment after reviewing
 
 # Yarn (can be much larger than npm)
 if command -v yarn >/dev/null; then
@@ -118,15 +119,18 @@ find "$HERMES_HOME/sessions/" -name "*.jsonl" -mtime +30 | wc -l   # count first
 
 # Hermes logs directory
 du -sh "$HERMES_HOME/logs/" 2>/dev/null
-find "$HERMES_HOME/logs/" -name "*.log" -mtime +14 -delete 2>/dev/null
+find "$HERMES_HOME/logs/" -name "*.log" -mtime +14 2>/dev/null | wc -l
+# find "$HERMES_HOME/logs/" -name "*.log" -mtime +14 -delete  # uncomment after reviewing
 
 # Hermes media cache (downloaded images, PDFs, attachments)
 du -sh "$HERMES_HOME/media/" 2>/dev/null
-find "$HERMES_HOME/media/" -type f -mtime +30 -delete 2>/dev/null
+find "$HERMES_HOME/media/" -type f -mtime +30 2>/dev/null | wc -l
+# find "$HERMES_HOME/media/" -type f -mtime +30 -delete  # uncomment after reviewing
 
 # Audio / TTS cache
 du -sh "$HERMES_HOME/audio_cache" 2>/dev/null
-find "$HERMES_HOME/audio_cache" -type f -mtime +7 -delete 2>/dev/null
+find "$HERMES_HOME/audio_cache" -type f -mtime +7 2>/dev/null | wc -l
+# find "$HERMES_HOME/audio_cache" -type f -mtime +7 -delete  # uncomment after reviewing
 ```
 
 ### 6. Stale database backups
@@ -173,7 +177,7 @@ done
 # Run git gc across all repos (skip --aggressive for routine maintenance — it's slow)
 find "$HOME" -maxdepth 4 -name .git -type d 2>/dev/null | while read gitdir; do
   repo="$(dirname "$gitdir")"
-  git -C "$repo" gc --prune=now 2>/dev/null
+  git -C "$repo" gc --prune=2.weeks.ago 2>/dev/null
 done
 
 # Prune stale worktrees
@@ -261,13 +265,21 @@ du -sh ~/.cache/huggingface ~/.cache/torch ~/.cache/ollama ~/.ollama 2>/dev/null
 | `$HERMES_HOME/kanban.db` | Local task/kanban state |
 | `$HERMES_HOME/mcp-tokens/` | MCP server auth tokens — losing these breaks tool connections |
 | `$HERMES_HOME/pairing/` | Pairing/integration state |
+| `$HERMES_HOME/plugins/` | Installed extensions/plugins |
 | `~/.password-store/` | GPG-encrypted backup vault |
 | `~/.ssh/` | SSH keys and config — not recoverable without backup |
 | `~/.gnupg/` | GPG keys — required to decrypt `~/.password-store/` |
+| `~/.claude/` | Claude CLI credentials |
+| `~/.git-credentials`, `~/.netrc` | Git/HTTP credentials |
+| `~/.config/gh/` | GitHub CLI auth |
+| `~/.local/bin/`, `~/.local/opt/` | User-local tools (especially on no-sudo VMs) |
 | `~/workspace/` | Your workspace repo — `git gc` is fine, deleting the dir is not |
 | `~/workspace/.argit/` | Backup manifest overlays — needed by argit |
+| `~/workspace/secrets/` | Encrypted service/channel secrets |
 
 **Warning:** `$HERMES_HOME/.cache/` is NOT the same as `~/.cache/`. The Hermes-internal cache may hold live OAuth tokens and auth material, not just throwaway data. Never clean it without inspecting contents first.
+
+**Rule:** Never delete `$HERMES_HOME` wholesale. Only clean explicitly named subdirectories (logs, media, audio_cache). Everything else under `$HERMES_HOME` is either state, config, or credentials.
 
 **Note:** `$HERMES_HOME` defaults to `~/.hermes`. If you use a non-default install or profiles, adjust paths accordingly. For OpenClaw environments, the equivalent paths under `~/.openclaw/agents/` are also protected.
 
@@ -282,9 +294,10 @@ name: "disk-cleanup"
 prompt: >
   Check disk usage with df -h /. If usage is above 80%, run the
   filesystem-maintenance skill: clean browser caches, purge package
-  manager caches, vacuum journals to 200M, delete session logs older
-  than 30 days, prune LFS objects (dry-run first), delete audio/media
-  cache older than 7 days. Report what was cleaned and current usage.
+  manager caches, vacuum journals to 200M, delete audio/media cache
+  older than 7 days, prune LFS objects (dry-run first). For session
+  logs older than 30 days, count and report only — do not delete
+  without explicit approval. Report what was cleaned and current usage.
   If usage is below 80%, just report the current level.
 ```
 
