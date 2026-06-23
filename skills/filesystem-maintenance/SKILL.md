@@ -63,8 +63,8 @@ if command -v yarn >/dev/null; then
   yarn cache clean 2>/dev/null
 fi
 
-# apt
-sudo apt clean 2>/dev/null       # removes cached .deb packages
+# apt (requires sudo — skip if unavailable)
+command -v sudo >/dev/null && sudo apt clean 2>/dev/null
 ```
 
 ### 3. Temp files and working copies
@@ -103,14 +103,18 @@ fi
 # Journal logs (systemd)
 if command -v journalctl >/dev/null; then
   journalctl --disk-usage
-  sudo journalctl --vacuum-size=200M   # keep only 200 MB of logs
+  # Vacuum requires sudo on some VMs — skip if unavailable
+  sudo journalctl --vacuum-size=200M 2>/dev/null || journalctl --vacuum-size=200M 2>/dev/null
 fi
 
 # Hermes session logs — old sessions accumulate
 HERMES_HOME="${HERMES_HOME:-$HOME/.hermes}"
 du -sh "$HERMES_HOME/sessions/" 2>/dev/null
-# Sessions older than 30 days are usually safe to remove
-find "$HERMES_HOME/sessions/" -name "*.jsonl" -mtime +30 -delete 2>/dev/null
+# CAUTION: session JSONL files power session_search (cross-session recall).
+# Deleting them means losing transcript history. Only remove if you accept
+# that trade-off, or archive them first.
+find "$HERMES_HOME/sessions/" -name "*.jsonl" -mtime +30 | wc -l   # count first
+# find "$HERMES_HOME/sessions/" -name "*.jsonl" -mtime +30 -delete  # uncomment after reviewing
 
 # Hermes logs directory
 du -sh "$HERMES_HOME/logs/" 2>/dev/null
@@ -224,7 +228,8 @@ du -sh ~/.cache/huggingface ~/.cache/torch ~/.cache/ollama ~/.ollama 2>/dev/null
 | `$HERMES_HOME/hooks/` | Event hooks |
 | `$HERMES_HOME/hermes-agent/` | Agent runtime (venv, node_modules, TUI) — often 1-2G but required |
 | `~/.password-store/` | GPG-encrypted backup vault |
-| `~/workspace/.git/` | Git history — `git gc` is fine, deleting `.git` is not |
+| `~/workspace/` | Your workspace repo — `git gc` is fine, deleting the dir is not |
+| `~/workspace/.argit/` | Backup manifest overlays — needed by argit |
 
 **Note:** `$HERMES_HOME` defaults to `~/.hermes`. If you use a non-default install or profiles, adjust paths accordingly. For OpenClaw environments, the equivalent paths under `~/.openclaw/agents/` are also protected.
 
@@ -248,7 +253,7 @@ prompt: >
 ## Pitfalls
 
 - **Don't delete `/tmp` wholesale** — running processes (including Hermes gateway) may have active files there. Target specific stale patterns.
-- **Don't `rm -rf $HERMES_HOME/sessions/`** — delete old files only. The current session is in there.
+- **Don't blindly delete old sessions** — `$HERMES_HOME/sessions/*.jsonl` files are used by `session_search` for cross-session recall. Deleting them loses transcript history permanently. Count and review before removing; consider archiving instead.
 - **Don't shrink a mounted disk** without understanding the filesystem and cloud provider. Growing a disk is safe; shrinking usually isn't.
 - **Docker `prune -a`** removes images you might need to re-pull (slow on metered connections). Use plain `prune` (no `-a`) unless disk is critical.
 - **`node_modules`** in active projects will need `npm install` again after deletion. Only remove from abandoned project dirs.
