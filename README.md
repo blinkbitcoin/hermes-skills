@@ -9,6 +9,7 @@ hermes skills tap add blinkbitcoin/hermes-skills
 hermes skills install blinkbitcoin/hermes-skills/skills/argit-backup
 hermes skills install blinkbitcoin/hermes-skills/skills/secrets-management
 hermes skills install blinkbitcoin/hermes-skills/skills/filesystem-maintenance
+hermes skills install blinkbitcoin/hermes-skills/skills/hermes-tweet
 hermes skills update    # later: refresh installed skills
 ```
 
@@ -19,6 +20,7 @@ hermes skills update    # later: refresh installed skills
 | [`argit-backup`](skills/argit-backup/SKILL.md) | Operate and health-check the argit backup of `~/.hermes` (systemd timer, manifests, restore/DR) |
 | [`secrets-management`](skills/secrets-management/SKILL.md) | Where Hermes keeps secrets (`~/.hermes/.env` vs the `pass` backup vault), `hermes model`, safe handling |
 | [`filesystem-maintenance`](skills/filesystem-maintenance/SKILL.md) | Disk cleanup for Hermes/OpenClaw VMs — 12 safe cleanup targets, 40 protected paths, review-first approach |
+| [`hermes-tweet`](skills/hermes-tweet/SKILL.md) | Use the Hermes Tweet plugin for X/Twitter search, monitoring, publishing, and account-safe action gates through Xquik |
 
 ## Layout
 
